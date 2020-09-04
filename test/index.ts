@@ -1,9 +1,11 @@
 import Monad from "../src"
 import chai, { expect } from "chai"
 import chaiThings from "chai-things"
+import chaiPromise from "chai-as-promised"
 
 chai.should()
 chai.use(chaiThings)
+chai.use(chaiPromise)
 
 type Option<T> = { some: T } | null
 
@@ -20,6 +22,15 @@ const Result = Monad<any, Result<any, Error>>(
   (v: any) => v instanceof Error ? { error: v } : { ok: v },
   (v: Result<any, Error>, fn: (v: any) => Result<any, Error>): Result<any, Error> => {
     return "error" in v ? v : fn(v.ok)
+  }
+)
+
+type Future<T> = Promise<T>
+
+const Future = Monad<any, Future<any>>(
+  async (v: any) => Promise.resolve(v),
+  async (v: Promise<any>, fn: (v: any) => Promise<any>): Promise<any> => {
+    return v.then(fn)
   }
 )
 
@@ -55,5 +66,21 @@ describe("Test Option", () => {
       return Result(a + b)
     }())
     expect(val).is.an("object").and.has.property("error")
+  })
+  it("should resolve", () => {
+    const val = Future.do(function*() {
+      const a: number = yield Promise.resolve(1)
+      const b: number = yield Promise.resolve(2)
+      return Promise.resolve(a + b)
+    }())
+    expect(val).is.instanceOf(Promise).and.eventually.equal(3)
+  })
+  it("should reject", () => {
+    const val = Future.do(function*() {
+      const a: number = yield Promise.resolve(1)
+      const b: number = yield Promise.reject("Bad object")
+      return Promise.resolve(a + b)
+    }())
+    expect(val).is.instanceOf(Promise).and.to.be.rejectedWith("Bad object")
   })
 })

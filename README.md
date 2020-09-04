@@ -104,3 +104,28 @@ const bar = Result.do(function*() {
 }())
 // bar = { error: Error('Bad object') }
 ```
+
+### Promise
+
+```js
+// type Future<T> = Promise<T>
+const Future = Monad(
+  (value) => Promsie.resolve(value),
+  (result, fn) => result.then(fn)
+)
+
+const foo = Future.do(function*() {
+    const a = yield Promise.resolve(1) // a = 1
+    const b = yield Promise.resolve(2) // b = 2
+    return Promise.resolve(a + b)
+}())
+// foo = Promise { 3 }
+
+const bar = Future.do(function*() {
+    const a = yield Promise.resolve(1) // a = 1
+    const b = yield Promise.reject('Bad object')
+    // will not reach here
+    return Promise.resolve(a + b)
+}())
+// bar = Promise { <rejected> 'Bad object' }
+```
