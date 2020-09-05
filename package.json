@@ -1,8 +1,9 @@
 {
   "name": "js-monadic",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "description": "Monad with do notation in Javascript, using ES6 generators.",
   "main": "dist/index.js",
+  "sideEffects": false,
   "files": [
     "dist/**",
     "umd/**"
